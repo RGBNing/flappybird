@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            #canvas {
+                border: 1px solid black;
+            }
+        </style>
+        <script>
+            var W = 800;
+            var H = 600;
+            var FPS = 30;
+            var play = true;
+
+            var G = 2.5;
+            var SPEED = 8;
+            var JUMP = 25;
+            var WH = 200;
+            var WW = 50;
+            var WSTEP = 400;
+            var FIRST_WALL = 400;
+            var WALL_MIN = 100;
+            var WALL_MAX = 300;
+
+            function Bird(){
+                this.x = 100;
+                this.y = 400;
+                this.dx = SPEED; 
+                this.dy = -JUMP;
+                this.w = 50;
+                this.h = 50;   
+
+
+                this.update = function(){
+                    this.dy += G;
+                    this.x += this.dx;
+                    this.y += this.dy;
+
+                }
+
+                this.draw = function(ctx , cam){
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.w/2 - cam.x, this.y + this.h /2,
+                            this.w / 2 , 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+            }
+
+
+            function Wall(x, y){
+                this.x = x;
+                this.y =y; 
+
+
+                this.draw = function(ctx, cam){
+                    ctx.fillStyle = 'gray';
+                    ctx.fillRect(this.x - cam.x, 0, WW, this.y);
+                    ctx.fillRect(this.x - cam.x,this.y + WH , WW, H - this.y - WH);
+                }
+            }
+            
+            function onLoad(){
+                var canvas = document.getElementById('canvas');
+                var ctx = canvas.getContext('2d');
+                var cam = {x:0};
+                var bird = new Bird();
+                var walls = [];
+               
+                 
+                function setupWalls(){
+                    for (var i = 0; i <1000; i++){
+                        var x = FIRST_WALL + i * WSTEP;
+                        var y = Math.random() * (WALL_MAX - WALL_MIN) + WALL_MIN;
+                        var wall = new Wall(x, y);
+                        walls.push(wall)
+                    }
+                }
+
+                function collisions(){
+                    for (var w of walls){
+                        if (bird.x + bird.w > w.x && bird.x < w.x +WW &&
+                          (bird.y < w.y|| bird.y + bird.h> w.y + WH)  )
+                        {
+                            play = false;
+                        }
+                    }
+                }
+
+                function drawScore(ctx){
+                    ctx.font = '30px Arial';
+                    ctx.fillStyle = 'black';
+                    ctx.fillText(snake.body.length +'', W*0.1, H*0.1);
+                }
+               
+                function draw(){
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(0, 0, W, H);
+                    
+                    bird.update();
+                    collisions();
+                    bird.draw(ctx, cam);
+
+                    for (var w of walls){
+                        w.draw(ctx, cam);
+                    }
+
+                    cam.x += SPEED;
+
+                    if (play){
+                        setTimeout(draw, 1000/FPS);
+                    }
+                    
+                }
+                setupWalls();
+                draw();
+                document.addEventListener('keydown', function(e){
+                    if (e.key == ' '){
+                        bird.dy = -JUMP;
+                    }
+
+                });
+
+                document.addEventListener('keyup', function(e){
+                   
+                });
+            }
+        </script>
+    </head>
+    <body>
+       <canvas id="canvas" width="800" height="600">
+       </canvas>
+       <script>
+           onLoad();
+       </script>
+    </body>
+</html>
